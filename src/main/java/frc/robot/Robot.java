@@ -30,16 +30,16 @@ import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
  */
 public class Robot extends TimedRobot {
   private final DifferentialDrive m_robotDrive;
-  // private final Joystick m_leftStick;
+  private final Joystick m_leftStick;
   // private final Joystick m_rightStick;
-  private final XboxController m_controller = new XboxController(0);
+  // private final XboxController m_controller = new XboxController(0);
 
   // private final PWMSparkMax m_leftMotor = new PWMSparkMax(3);
   // private final PWMSparkMax m_rightMotor = new CANSparkMax(1);
-  private final SparkMax m_leftLeaderMotor = new SparkMax(2, MotorType.kBrushless);
-  private final SparkMax m_rightFollowerMotor = new SparkMax(3, MotorType.kBrushless);
-  private final SparkMax m_rightLeaderMotor = new SparkMax(4, MotorType.kBrushless);
-  private final SparkMax m_leftFollowerMotor = new SparkMax(1, MotorType.kBrushless);
+  private final SparkMax m_leftLeaderMotor = new SparkMax(3, MotorType.kBrushless);
+  private final SparkMax m_rightFollowerMotor = new SparkMax(1, MotorType.kBrushless);
+  private final SparkMax m_rightLeaderMotor = new SparkMax(2, MotorType.kBrushless);
+  private final SparkMax m_leftFollowerMotor = new SparkMax(4, MotorType.kBrushless);
 
   /** Called once at the beginning of the robot program. */
   public Robot() {
@@ -84,6 +84,8 @@ public class Robot extends TimedRobot {
 
 
     m_robotDrive = new DifferentialDrive(m_leftLeaderMotor::set, m_rightLeaderMotor::set);
+    m_leftStick = new Joystick(0);
+    // m_rightStick = new Joystick(1);
 
     SendableRegistry.addChild(m_robotDrive, m_leftLeaderMotor);
     SendableRegistry.addChild(m_robotDrive, m_rightLeaderMotor);
@@ -92,7 +94,11 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     // System.out.println("lefty: " + -m_leftStick.getY() + " righty: " + -m_rightStick.getY() );
-    m_robotDrive.tankDrive(m_controller.getLeftY(),m_controller.getRightY());
+    /*xbox controller
+     m_robotDrive.tankDrive(m_controller.getLeftY(),m_controller.getRightY());
+    */
+    //joystick 
+    m_robotDrive.arcadeDrive(-m_leftStick.getRawAxis(1), -m_leftStick.getRawAxis(0));
     // m_robotDrive.tankDrive(0.5, 0.5);
   }
 }
