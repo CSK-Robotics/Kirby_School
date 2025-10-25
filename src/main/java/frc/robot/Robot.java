@@ -40,6 +40,8 @@ public class Robot extends TimedRobot {
   private final SparkMax m_rightFollowerMotor = new SparkMax(1, MotorType.kBrushless);
   private final SparkMax m_rightLeaderMotor = new SparkMax(2, MotorType.kBrushless);
   private final SparkMax m_leftFollowerMotor = new SparkMax(4, MotorType.kBrushless);
+  private final Limelight m_camera = new Limelight(0);
+  private Autonomous autonomous;
 
   /** Called once at the beginning of the robot program. */
   public Robot() {
@@ -92,13 +94,29 @@ public class Robot extends TimedRobot {
   }
 
   @Override
+  public void teleopInit() {m_camera.turnOffLEDS();}
+
+  @Override
+  public void disabledInit() {m_camera.turnOffLEDS();}
+
+  @Override
+  public void disabledPeriodic() {}
+
+  @Override
   public void teleopPeriodic() {
-    // System.out.println("lefty: " + -m_leftStick.getY() + " righty: " + -m_rightStick.getY() );
-    /*xbox controller
-     m_robotDrive.tankDrive(m_controller.getLeftY(),m_controller.getRightY());
-    */
-    //joystick 
     m_robotDrive.arcadeDrive(-m_leftStick.getRawAxis(1), -m_leftStick.getRawAxis(0));
-    // m_robotDrive.tankDrive(0.5, 0.5);
+  }
+
+  @Override
+  public void autonomousInit() {
+    // Initialize limelight properties here:
+    System.out.println("Turning on camera LEDs");
+    m_camera.turnOnLEDS();
+    autonomous = new Autonomous(m_camera, m_robotDrive, 6);
+  }
+
+  @Override
+  public void autonomousPeriodic() {
+    autonomous.tick();
   }
 }
