@@ -18,33 +18,45 @@ public class Limelight {
     }
 
     public void turnOffLEDS() {
-        //LimelightHelpers.setLEDMode_ForceOff("");
+        LimelightHelpers.setLEDMode_ForceOff("");
     }
 
     public void turnOnLEDS() {
-        //LimelightHelpers.setLEDMode_ForceOn("");
+        LimelightHelpers.setLEDMode_ForceOn("");
     }
 
     public Dictionary getAprilTagPosition() {
-        Dictionary<String, Integer> d = new Hashtable<>();
-        /*
-        double tx = LimelightHelpers.getTX("");  // Horizontal offset from crosshair to target in degrees
-        double ty = LimelightHelpers.getTY("");  // Vertical offset from crosshair to target in degrees
-        double ta = LimelightHelpers.getTA("");  // Target area (0% to 100% of image)
-        boolean hasTarget = LimelightHelpers.getTV(""); // Do you have a valid target?
-        System.out.println("hasTarget: " + hasTarget);
-        */
+        Dictionary<String, Double> d = new Hashtable<>();
         RawFiducial[] fiducials = LimelightHelpers.getRawFiducials("");
+        int bestAprilTagIndex = -1;
+        int currentIndex = 0;
+        double biggestArea = 0.0;
+        
         for (RawFiducial fiducial : fiducials) {
+            double ta = fiducial.ta;                 // Target area
+            if(ta > biggestArea) {
+                bestAprilTagIndex = currentIndex;
+                biggestArea = ta;
+            }
+            currentIndex += 1;
+        }
+
+        if (bestAprilTagIndex != -1) {
+            RawFiducial fiducial = fiducials[bestAprilTagIndex];
+
             int id = fiducial.id;                    // Tag ID
             double txnc = fiducial.txnc;             // X offset (no crosshair)
             double tync = fiducial.tync;             // Y offset (no crosshair)
             double ta = fiducial.ta;                 // Target area
             double distToCamera = fiducial.distToCamera;  // Distance to camera
-            double distToRobot = fiducial.distToRobot;    // Distance to robot
-            double ambiguity = fiducial.ambiguity;   // Tag pose ambiguity
 
-            System.out.println("April Tag: " + id);
+            System.out.println("Best april tag ID: " + fiducials[bestAprilTagIndex].id + " index: " + bestAprilTagIndex + " target offset: " + txnc + " " + tync);
+
+            d.put("id", (double)id);
+            d.put("area", ta);
+            d.put("distance", distToCamera);
+            d.put("target_x", txnc);
+            d.put("target_y", tync);
         }
         return d;
     }
