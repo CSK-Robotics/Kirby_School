@@ -50,7 +50,7 @@ public class Limelight {
             double ta = fiducial.ta;                 // Target area
             double distToCamera = fiducial.distToCamera;  // Distance to camera
 
-            System.out.println("Best april tag ID: " + fiducials[bestAprilTagIndex].id + " index: " + bestAprilTagIndex + " target offset: " + txnc + " " + tync);
+            System.out.println("Best april tag ID: " + fiducials[bestAprilTagIndex].id + " index: " + bestAprilTagIndex + " target offset: " + txnc + " " + tync + " " + ta);
 
             d.put("id", (double)id);
             d.put("area", ta);
