@@ -1,11 +1,16 @@
 package frc.robot;
 import java.util.Dictionary;
+import java.util.Hashtable;
+import java.util.List;
+
+import javax.print.attribute.HashAttributeSet;
 
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkClosedLoopController;
 
 import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import frc.robot.LimelightHelpers.RawFiducial;
 
 public class Autonomous {
     private Limelight camera_object;
@@ -18,6 +23,7 @@ public class Autonomous {
     private double slowSpinCurrentAngle = 0.0;
     private SparkClosedLoopController leftController;
     private SparkClosedLoopController rightController;
+    // private Dictionary<String, Double> goals = new Hashtable<>();
 
     public Autonomous(Limelight camera, SparkClosedLoopController rightController, SparkClosedLoopController leftController, int targetAprilTag) {
         camera_object = camera;
@@ -25,13 +31,26 @@ public class Autonomous {
         this.targetAprilTag = targetAprilTag;
         this.leftController = leftController;
         this.rightController = rightController;
+
+        // Declare dictionary goals:
+        // this.goals.put("apriltag_6", 10)
     }
 
-    public void slowSpinTick() {
+    public void slowSpinTick(String direction) {
         // Spin clock-wise:
+        double lcSpeed = 0;
+        double rcSpeed = 0;
+        if(direction == "cw") {
+            lcSpeed = 50;
+            rcSpeed = 0;
+        } else {
+            lcSpeed = 0;
+            rcSpeed = 50;
+        }
+
         if(this.slowSpinCurrentAngle < 360) {
-            leftController.setReference(1, ControlType.kPosition);
-            rightController.setReference(0, ControlType.kPosition);
+            leftController.setReference(lcSpeed, ControlType.kPosition);
+            rightController.setReference(rcSpeed, ControlType.kPosition);
             this.slowSpinCurrentAngle += 1;
         }
     }
@@ -43,11 +62,11 @@ public class Autonomous {
     }
 
 
-    public void moveForwardTick(double x_target_offset) {
+    public void moveForwardTick(double x_target_offset, double maxSlowDownSpeed) {
         // Move forward while adjusting to zone in on target:
         double currentVelocityL = this.leftFFSpeed;
         double currentVelocityR = this.rightFFSpeed;
-        
+
         if(Math.abs(x_target_offset) <= this.targetXTolerance) {
             // Assume we're centered "enough"
             leftController.setReference(currentVelocityL, ControlType.kPosition);
@@ -57,12 +76,12 @@ public class Autonomous {
             System.out.println("Ramp: " + rampOffset);
             if(x_target_offset > 0) {
                 // Target is off the right side
-                currentVelocityR -= 20*rampOffset;
+                currentVelocityR -= maxSlowDownSpeed*rampOffset;
                 leftController.setReference(currentVelocityL, ControlType.kPosition);
                 rightController.setReference(currentVelocityR, ControlType.kPosition);
             } else {
                 // Target is off the left side
-                currentVelocityL -= 20*rampOffset;
+                currentVelocityL -= maxSlowDownSpeed*rampOffset;
                 leftController.setReference(currentVelocityL, ControlType.kPosition);
                 rightController.setReference(currentVelocityR, ControlType.kPosition);
             }
@@ -90,19 +109,23 @@ public class Autonomous {
             leftController.setReference(0, ControlType.kVelocity);
             
             // Do a slow spin tick to find target
-            slowSpinTick();
+            slowSpinTick("ccw");
         } else {
             if(bestAprilTag.get("id") == this.targetAprilTag) {
                 // Reset slowSpingCurrentAngle for the next search
                 slowSpinCurrentAngle = 0;
                 // Move towards target:
-                // rightController.setReference(rightFFSpeed, ControlType.kVelocity);
-                // leftController.setReference(leftFFSpeed, ControlType.kVelocity);
-                moveForwardTick(bestAprilTag.get("target_x"));
+                if (this.isCloseEnough(bestAprilTag.get("area"))) {
+                    rightController.setReference(0, ControlType.kVelocity);
+                    leftController.setReference(0, ControlType.kVelocity);
+                } else {
+                    moveForwardTick(bestAprilTag.get("target_x"), 20);
+                }
             }
             else {
                 rightController.setReference(0, ControlType.kVelocity);
                 leftController.setReference(0, ControlType.kVelocity);
+                // TODO: Add more movement logic here
             }
         }
     }
